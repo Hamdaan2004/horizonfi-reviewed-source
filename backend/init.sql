@@ -1,0 +1,1 @@
+-- Canonical schema is ../init.sql; Docker Compose mounts that root file.

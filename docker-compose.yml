@@ -1,0 +1,50 @@
+services:
+  db:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      POSTGRES_DB: horizonfi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-coursework-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+      - tsdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d horizonfi"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  ml_service:
+    build: ./ml_service
+    environment:
+      PYTHONUNBUFFERED: "1"
+    expose:
+      - "8000"
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-local-coursework-password}@db:5432/horizonfi
+      JWT_SECRET: ${JWT_SECRET:-local-coursework-only-change-before-deployment}
+      ML_SERVICE_URL: http://ml_service:8000/predict-anomaly
+      PORT: 5000
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      ml_service:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  tsdata:

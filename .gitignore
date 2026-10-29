@@ -1,0 +1,21 @@
+node_modules/
+**/node_modules/
+.DS_Store
+.env
+
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated files
+node_modules/
+**/node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+
+# Local databases and logs
+*.log
